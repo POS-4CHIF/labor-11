@@ -1,5 +1,6 @@
 package at.michaelkoenig.labor_11;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.SharedPreferences;
@@ -24,6 +25,14 @@ public class MainActivity extends AppCompatActivity implements SetCorrectNumber 
     private int currCorrectNumber;
     private SharedPreferences prefs;
 
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt("LEVEL", level);
+        editor.commit();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements SetCorrectNumber 
             }
         };
 
-        new RandomNumberMessageThread(MSG_KEY, msgHandler, level).start();
+        startNextLevel();
 
         findViewById(R.id.btn1).setOnClickListener(l -> registerInput(1));
         findViewById(R.id.btn2).setOnClickListener(l -> registerInput(2));
@@ -71,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements SetCorrectNumber 
 
     public void registerInput(int number) {
         // while not all digits entered and all numbers have been shown
-        System.out.println("fads" + Integer.toString(input).length() + " " + level);
         if ((input == 0 || Integer.toString(input).length() < level) && Integer.toString(currCorrectNumber).length() == level) {
             System.out.println("asdf");
             input = input * 10 + number;
@@ -91,27 +99,40 @@ public class MainActivity extends AppCompatActivity implements SetCorrectNumber 
                 System.out.println("incorrect input");
             }
 
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putInt("LEVEL", level);
-            editor.commit();
-
             currCorrectNumber = 0;
             input = 0;
             txtCode.setText(R.string.code);
 
-            if (level % 2 == 1) // Strategy 1
-                new RandomNumberMessageThread(MSG_KEY, msgHandler, level).start();
-            else // Strategy 2
-                new RandomNumberAsyncTask(MSG_KEY, msgHandler, level, txtNumber, this).execute();
+            startNextLevel();
 
         }
 
+    }
+
+    private void startNextLevel() {
+        if (level % 2 == 1) // Strategy 1
+            new RandomNumberMessageThread(MSG_KEY, msgHandler, level).start();
+        else // Strategy 2
+            new RandomNumberAsyncTask(MSG_KEY, msgHandler, level, txtNumber, this).execute();
+    }
+
+    public void onResetButtonClick(View view) {
+        // If all digits have been shown
+        if (currCorrectNumber == 0 || Integer.toString(currCorrectNumber).length() == level) {
+            level = 1;
+            txtNumber.setText("");
+            txtCode.setText(R.string.code);
+            input = 0;
+            currCorrectNumber = 0;
+            startNextLevel();
+        }
     }
 
     @Override
     public void setCorrectNumber(int correctNumber) {
         this.currCorrectNumber = correctNumber;
     }
+
 
 }
 

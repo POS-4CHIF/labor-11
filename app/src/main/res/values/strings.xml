@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">labor-11</string>
     <string name="code">Code: </string>
+    <string name="reset">Reset Level</string>
 </resources>
