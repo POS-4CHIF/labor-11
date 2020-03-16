@@ -21,12 +21,24 @@ public class RandomNumberMessageThread extends Thread {
 
     public void run() {
         Random rand = new Random();
-        for (int i = 0; i < count; i++) {
+        // wait longer before first message
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (int i = 0; i < count * 2; i++) {
             try {
-                Thread.sleep(1000);
+                // Sleep less when generating more numbers
+                Thread.sleep(1000 / count);
                 Message msg = new Message();
                 Bundle b = new Bundle();
-                b.putInt(msgKey, rand.nextInt(10) + 1);
+
+                // every second msg should be a blank
+                if (i % 2 == 0)
+                    b.putInt(msgKey, rand.nextInt(9) + 1);
+                else
+                    b.putInt(msgKey, Integer.MIN_VALUE);
                 msg.setData(b);
                 msgHandler.sendMessage(msg);
             } catch (InterruptedException e) {
