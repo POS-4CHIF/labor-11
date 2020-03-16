@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SetCorrectNumber {
 
     private static final String MSG_KEY = "msg";
 
@@ -70,9 +70,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void registerInput(int number) {
-        // while not all digits entered
+        // while not all digits entered and all numbers have been shown
         System.out.println("fads" + Integer.toString(input).length() + " " + level);
-        if (input == 0 || Integer.toString(input).length() < level) {
+        if ((input == 0 || Integer.toString(input).length() < level) && Integer.toString(currCorrectNumber).length() == level) {
             System.out.println("asdf");
             input = input * 10 + number;
             System.out.println(number);
@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onBtnOkClick(View view) {
         // if all digits have been generated
-        if (Integer.toString(input).length() == level) {
+        if (Integer.toString(currCorrectNumber).length() == level) {
             if (input == currCorrectNumber) {
                 level++;
                 System.out.println("correct input");
@@ -97,11 +97,24 @@ public class MainActivity extends AppCompatActivity {
 
             currCorrectNumber = 0;
             input = 0;
-            txtCode.setText("");
+            txtCode.setText(R.string.code);
 
-            new RandomNumberMessageThread(MSG_KEY, msgHandler, level).start();
+            if (level % 2 == 1) // Strategy 1
+                new RandomNumberMessageThread(MSG_KEY, msgHandler, level).start();
+            else // Strategy 2
+                new RandomNumberAsyncTask(MSG_KEY, msgHandler, level, txtNumber, this).execute();
+
         }
 
     }
 
+    @Override
+    public void setCorrectNumber(int correctNumber) {
+        this.currCorrectNumber = correctNumber;
+    }
+
+}
+
+interface SetCorrectNumber {
+    void setCorrectNumber(int correctNumber);
 }
